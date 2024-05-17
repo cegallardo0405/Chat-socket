@@ -1,27 +1,25 @@
 {
-  "name": "socket-messages-react",
+  "name": "Basic Chat App with Fastify and Socket,io",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon server/index.js --ignore frontend",
-    "build": "npm run --prefix frontend build",
-    "start": "node server/index.js"
+    "dev": "node --watch server/index.js",
+    "build": "npm run --prefix frontend build && npm run --prefix frontend dev",
+    "start": "node --env-file=.env server/index.js & npm run build"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@babel/core": "^7.24.5",
     "@babel/preset-react": "^7.24.1",
     "@babel/register": "^7.23.7",
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "morgan": "^1.10.0",
-    "socket.io": "^4.6.2"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.22"
+    "fastify-socket.io": "^5.0.0",
+    "@fastify/cors":"9.0.1",
+    "@fastify/static": "7.0.4",
+    "fastify": "4.27.0",
+    "socket.io": "^4.7.5"
   }
 }

@@ -1,39 +1,41 @@
-import express from "express";
-import http from "http";
-import morgan from "morgan";
-import { Server as SocketServer } from "socket.io";
-import { resolve, dirname } from "path";
-
-import { PORT } from "./config.js";
-import cors from "cors";
+import Fastify from "fastify";
+import FastifyIO from "fastify-socket.io";
+import FastifyStatic from "@fastify/static";
+import fastifyCors from "@fastify/cors";
+import getFakeName from "./fake-name.js";
+import { resolve } from "path";
 
 import('@babel/register');
 
-// Initializations
-const app = express();
-const server = http.createServer(app);
-const io = new SocketServer(server, {
-  // cors: {
-  //   origin: "http://localhost:3000",
-  // },
+const server = Fastify({logger: process.env.NODE_ENV === 'dev'});
+
+server.register(fastifyCors, { origin: process.env.ORIGINS});
+
+server.register(FastifyIO, {
+  transports: ["websocket", "polling"],
+  cors: {origin: process.env.ORIGINS}
 });
 
-// Middlewares
-app.use(cors());
-app.use(morgan("dev"));
-app.use(express.urlencoded({ extended: false }));
+server.register(FastifyStatic, {root: resolve("frontend/dist")});
 
-app.use(express.static(resolve("frontend/dist")));
 
-io.on("connection", (socket) => {
-  console.log(socket.id);
-  socket.on("message", (body) => {
-    socket.broadcast.emit("message", {
-      body,
-      from: socket.id.slice(8),
+server.listen({port: process.env.PORT, host: process.env.HOST}, (err, address) => {
+  if (err) {
+    server.log.error(err);
+    process.exit(1);
+  }
+  
+  server.io.on("connection", async socket => {
+    
+    server.log.info(`Client connected: ${socket.id}`);
+    
+    const from = await getFakeName(); // Get a fake name for the user
+    socket.on("message", body => {
+      socket.broadcast.emit("message", {
+        body, 
+        from
+      });
     });
+
   });
 });
-
-server.listen(PORT);
-console.log(`server on port ${PORT}`);
